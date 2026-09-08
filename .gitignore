@@ -1,0 +1,8 @@
+# Secrets locaux — ne jamais commiter : le dépôt est public.
+.env
+.env.*
+!.env.example
+
+# Dépendances et fichiers générés
+node_modules/
+.vercel/

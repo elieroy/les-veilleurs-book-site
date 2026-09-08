@@ -930,11 +930,13 @@ body.low-stock .stock-row b{ color:var(--ember-light); }
         <div class="field"><label>Client Secret</label><input type="password" id="p_singpayClientSecret" placeholder="Laisser vide pour ne pas changer" autocomplete="off"></div>
         <div class="field"><label>ID du portefeuille (wallet)</label><input type="text" id="p_singpayWallet" placeholder="ex. am7314"></div>
         <div class="field"><label>ID de distribution (disbursement) — optionnel</label><input type="text" id="p_singpayDisbursement" placeholder="Laisser vide si non fourni"></div>
-        <p class="pay-help">Identifiants dans ton espace <strong>SingPay Workspace</strong> (client.singpay.ga) → section API. Pense à y renseigner l'URL de callback : <code id="singpayCallbackUrl"></code></p>
+        <div class="field"><label>Jeton secret du webhook</label><input type="password" id="p_singpayWebhookToken" placeholder="Laisser vide pour ne pas changer" autocomplete="off"></div>
+        <p class="pay-help">Identifiants dans ton espace <strong>SingPay Workspace</strong> (client.singpay.ga) → section API. Le jeton secret du webhook est une valeur que tu inventes (longue et aléatoire) : enregistre-la ici, puis renseigne l'URL de callback sur le portefeuille en y ajoutant ce jeton : <code id="singpayCallbackUrl"></code></p>
       </div>
 
       <button class="btn-primary" onclick="savePaymentSettings()">Enregistrer les paramètres de paiement</button>
       <p class="pay-save-note" id="paySaveNote"></p>
+      <p class="pay-help">🔒 <strong>Recommandé pour les secrets :</strong> plutôt que de les saisir ici, définis-les en variables d'environnement dans Vercel (Settings → Environment Variables) : <code>STRIPE_SECRET_KEY</code>, <code>STRIPE_WEBHOOK_SECRET</code>, <code>PAYPAL_CLIENT_SECRET</code>, <code>SINGPAY_CLIENT_ID</code>, <code>SINGPAY_CLIENT_SECRET</code>, <code>SINGPAY_WALLET</code>, <code>SINGPAY_WEBHOOK_TOKEN</code>… Une variable d'environnement prime toujours sur la valeur saisie dans ce formulaire.</p>
 
       <div class="pay-group" style="margin-top:26px;">
         <h3>Prix du livre</h3>
@@ -1580,7 +1582,7 @@ async function loadPaymentSettings(){
     if(document.getElementById('p_priceEur')) document.getElementById('p_priceEur').value = (s.priceEur || '').toString().replace('.', ',');
     if(document.getElementById('p_priceXaf')) document.getElementById('p_priceXaf').value = s.priceXaf || '';
     const cb = document.getElementById('singpayCallbackUrl');
-    if(cb) cb.textContent = window.location.origin + '/api/webhook/singpay';
+    if(cb) cb.textContent = window.location.origin + '/api/webhook/singpay?token=VOTRE_JETON';
   }catch(e){}
 }
 
@@ -1596,6 +1598,7 @@ async function savePaymentSettings(){
     singpayClientSecret: document.getElementById('p_singpayClientSecret').value.trim(),
     singpayWallet: document.getElementById('p_singpayWallet').value.trim(),
     singpayDisbursement: document.getElementById('p_singpayDisbursement').value.trim(),
+    singpayWebhookToken: document.getElementById('p_singpayWebhookToken').value.trim(),
   };
   const note = document.getElementById('paySaveNote');
   note.textContent = 'Enregistrement…';
@@ -1606,7 +1609,7 @@ async function savePaymentSettings(){
       body: JSON.stringify(payload)
     });
     note.textContent = 'Paramètres enregistrés.';
-    ['p_stripeSecretKey','p_stripeWebhookSecret','p_paypalClientSecret','p_singpayClientId','p_singpayClientSecret'].forEach(id=>{ document.getElementById(id).value=''; });
+    ['p_stripeSecretKey','p_stripeWebhookSecret','p_paypalClientSecret','p_singpayClientId','p_singpayClientSecret','p_singpayWebhookToken'].forEach(id=>{ document.getElementById(id).value=''; });
     await loadPaymentSettings();
     refreshAdmin();
   }catch(e){

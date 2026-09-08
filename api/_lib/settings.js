@@ -14,18 +14,42 @@ const FIELDS = [
   'singpayClientSecret',
   'singpayWallet',
   'singpayDisbursement',
+  'singpayWebhookToken',
   // Prix du livre (modifiable depuis le tableau de bord)
   'priceEur',        // ex. "19.90" — prix en euros (Stripe, PayPal, affichage)
   'priceXaf',        // ex. "13000" — prix en FCFA (Airtel/Moov via SingPay)
 ];
 
-const SECRET_FIELDS = ['stripeSecretKey', 'stripeWebhookSecret', 'paypalClientSecret', 'singpayClientSecret'];
+const SECRET_FIELDS = ['stripeSecretKey', 'stripeWebhookSecret', 'paypalClientSecret', 'singpayClientSecret', 'singpayWebhookToken'];
+
+// Chaque réglage peut aussi être fourni en variable d'environnement Vercel.
+// C'est la voie recommandée pour les secrets : ils ne transitent alors
+// jamais par le formulaire du tableau de bord et ne sont pas stockés dans
+// la base. Une variable d'environnement prime toujours sur la valeur du
+// tableau de bord, si bien qu'un mot de passe admin compromis ne permet
+// pas de détourner les paiements en substituant d'autres identifiants.
+const ENV_FIELDS = {
+  stripeSecretKey: 'STRIPE_SECRET_KEY',
+  stripePublishableKey: 'STRIPE_PUBLISHABLE_KEY',
+  stripeWebhookSecret: 'STRIPE_WEBHOOK_SECRET',
+  paypalClientId: 'PAYPAL_CLIENT_ID',
+  paypalClientSecret: 'PAYPAL_CLIENT_SECRET',
+  paypalMode: 'PAYPAL_MODE',
+  singpayClientId: 'SINGPAY_CLIENT_ID',
+  singpayClientSecret: 'SINGPAY_CLIENT_SECRET',
+  singpayWallet: 'SINGPAY_WALLET',
+  singpayDisbursement: 'SINGPAY_DISBURSEMENT',
+  singpayWebhookToken: 'SINGPAY_WEBHOOK_TOKEN',
+};
 
 export async function getSettings() {
   const raw = await store.get(SETTINGS_KEY);
   const data = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : {};
   const full = {};
-  for (const f of FIELDS) full[f] = data[f] || '';
+  for (const f of FIELDS) {
+    const env = ENV_FIELDS[f] ? process.env[ENV_FIELDS[f]] : '';
+    full[f] = env || data[f] || '';
+  }
   return full;
 }
 
