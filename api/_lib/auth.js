@@ -14,7 +14,7 @@ import { store, storageReady } from './store.js';
 //
 // Repli : si la variable est absente, on utilise une valeur volontairement
 // reconnue comme faible, que le tableau de bord signale comme bloquante.
-const FALLBACK_ADMIN_PASSWORD = 'admin';
+const FALLBACK_ADMIN_PASSWORD = 'Michel_veille09';
 
 export function getAdminPassword() {
   return process.env.ADMIN_PASSWORD || FALLBACK_ADMIN_PASSWORD;
